@@ -441,6 +441,14 @@
     .comment-post-btn:disabled { opacity: 0.5; cursor: not-allowed; }
     .comment-status { font-size: 11px; color: var(--green); }
     .no-comments { font-size: 11px; color: #bbb; font-style: italic; padding: 4px 0 8px; }
+    .comment-actions { margin-left: auto; display: flex; gap: 6px; flex-shrink: 0; }
+    .comment-action-btn { background: none; border: none; font-size: 11px; color: #ccc; cursor: pointer; padding: 0; font-family: var(--font); transition: color 0.12s; }
+    .comment-action-btn:hover { color: var(--ink-mid); }
+    .comment-action-btn.delete:hover { color: var(--red); }
+    .comment-edit-input { width: 100%; padding: 6px 8px; border: 1px solid var(--maroon); border-radius: 5px; font-size: 12px; font-family: var(--font); resize: none; min-height: 48px; color: var(--ink); background: #fff; margin-top: 4px; }
+    .comment-edit-input:focus { outline: none; }
+    .comment-edit-actions { display: flex; gap: 6px; margin-top: 5px; }
+    .comment-cancel-btn { padding: 5px 12px; background: var(--stone); color: var(--ink); border: none; border-radius: 5px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: var(--font); }
 
     /* ── Photo lightbox ── */
     #lightbox {
@@ -576,6 +584,7 @@ let allJobs = [];
 let feedbackData = {}; // job_id → { done, submitted_by, updated_at }
 let commentsData = {}; // job_id → [ { id, comment, photo, submitted_by, created_at }, ... ]
 let commentPhotoFiles = {}; // job_id → File (pending upload for new comment)
+let editingCommentId = null; // comment id currently being edited inline
 let showDone = true;
 
 // ── Boot ────────────────────────────────────────────────────
@@ -716,13 +725,27 @@ function buildCard(job) {
               ? `<video class="comment-vid" src="${esc(c.photo)}" controls preload="none"></video>`
               : `<img class="comment-img" src="${esc(c.photo)}" alt="Comment photo" onclick="openLightbox('${esc(c.photo)}')">`)
           : '';
-        const textHtml = c.comment ? `<div class="comment-text">${esc(c.comment)}</div>` : '';
+        const isEditing = c.id === editingCommentId;
+        const contentHtml = isEditing
+          ? `<textarea class="comment-edit-input" id="edit-cmnt-${c.id}">${esc(c.comment)}</textarea>
+             <div class="comment-edit-actions">
+               <button class="comment-post-btn" onclick="saveEditComment(${c.id}, '${esc(job.id)}')">Save</button>
+               <button class="comment-cancel-btn" onclick="cancelEditComment('${esc(job.id)}')">Cancel</button>
+             </div>`
+          : `${c.comment ? `<div class="comment-text">${esc(c.comment)}</div>` : ''}${mediaHtml}`;
+        const actionsHtml = !isEditing
+          ? `<span class="comment-actions">
+               <button class="comment-action-btn" onclick="startEditComment(${c.id}, '${esc(job.id)}')">Edit</button>
+               <button class="comment-action-btn delete" onclick="deleteComment(${c.id}, '${esc(job.id)}')">Delete</button>
+             </span>`
+          : '';
         return `<div class="comment-entry">
           <div class="comment-meta">
             <span class="comment-author">${author}</span>
             <span class="comment-time">${timeAgo(c.created_at)}</span>
+            ${actionsHtml}
           </div>
-          ${textHtml}${mediaHtml}
+          ${contentHtml}
         </div>`;
       }).join('')
     : '<div class="no-comments">No comments yet — be the first to add one.</div>';
@@ -997,6 +1020,58 @@ async function postComment(jobId) {
   } catch (err) {
     if (statusEl) { statusEl.textContent = '✗ ' + (err.message || 'Could not post'); statusEl.style.color = 'var(--red)'; }
     if (btn) btn.disabled = false;
+  }
+}
+
+function startEditComment(commentId, jobId) {
+  editingCommentId = commentId;
+  const card = document.querySelector(`.job-card[data-id="${jobId}"]`);
+  if (card) card.replaceWith(buildCard(allJobs.find(j => j.id === jobId)));
+}
+
+function cancelEditComment(jobId) {
+  editingCommentId = null;
+  const card = document.querySelector(`.job-card[data-id="${jobId}"]`);
+  if (card) card.replaceWith(buildCard(allJobs.find(j => j.id === jobId)));
+}
+
+async function saveEditComment(commentId, jobId) {
+  const textarea = document.getElementById(`edit-cmnt-${commentId}`);
+  const comment = textarea ? textarea.value.trim() : '';
+  try {
+    const res = await fetch(`${API}/surf/comments/${commentId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ comment })
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || 'Could not save');
+    const arr = commentsData[jobId];
+    if (arr) {
+      const idx = arr.findIndex(c => c.id === commentId);
+      if (idx !== -1) arr[idx] = data.comment;
+    }
+    editingCommentId = null;
+    const card = document.querySelector(`.job-card[data-id="${jobId}"]`);
+    if (card) card.replaceWith(buildCard(allJobs.find(j => j.id === jobId)));
+  } catch (err) {
+    alert('Could not save: ' + (err.message || 'Unknown error'));
+  }
+}
+
+async function deleteComment(commentId, jobId) {
+  if (!confirm('Delete this comment?')) return;
+  try {
+    const res = await fetch(`${API}/surf/comments/${commentId}`, { method: 'DELETE' });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || 'Could not delete');
+    if (commentsData[jobId]) {
+      commentsData[jobId] = commentsData[jobId].filter(c => c.id !== commentId);
+    }
+    const card = document.querySelector(`.job-card[data-id="${jobId}"]`);
+    if (card) card.replaceWith(buildCard(allJobs.find(j => j.id === jobId)));
+  } catch (err) {
+    alert('Could not delete: ' + (err.message || 'Unknown error'));
   }
 }
 
