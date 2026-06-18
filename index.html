@@ -442,7 +442,7 @@
     .comment-status { font-size: 11px; color: var(--green); }
     .no-comments { font-size: 11px; color: #bbb; font-style: italic; padding: 4px 0 8px; }
     .comment-actions { display: flex; gap: 8px; margin-top: 8px; }
-    .comment-action-btn { display: inline-flex; align-items: center; gap: 5px; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: var(--font); transition: all 0.15s; border: none; }
+    .comment-action-btn { display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; border-radius: 5px; font-size: 11px; font-weight: 600; cursor: pointer; font-family: var(--font); transition: all 0.15s; border: none; }
     .comment-action-btn.edit { background: var(--cream-dark); color: var(--ink-mid); border: 1px solid var(--stone); }
     .comment-action-btn.edit:hover { background: var(--stone); color: var(--ink); }
     .comment-action-btn.delete { background: var(--red-light); color: var(--red); border: 1px solid #fecaca; }
@@ -865,7 +865,7 @@ function buildCard(job) {
           onchange="toggleDone('${esc(job.id)}', this.checked)">
         <label class="done-label" for="done-${esc(job.id)}">Mark as completed</label>
         ${doneByHtml}
-        <button class="edit-btn" onclick="openEditPanel('${esc(job.id)}')">✏️ Edit</button>
+        <button class="edit-btn" onclick="openEditPanel('${esc(job.id)}')">✏️ Edit Job</button>
       </div>
       ${commentsHtml}
       ${editPanelHtml}
