@@ -349,6 +349,70 @@
     .save-status { font-size: 11px; color: var(--green); display: none; }
     .save-status.visible { display: inline; }
 
+    /* ── Edit panel ── */
+    .edit-btn {
+      padding: 4px 12px;
+      background: transparent;
+      color: var(--ink-mid);
+      border: 1px solid var(--stone);
+      border-radius: 5px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: var(--font);
+      transition: all 0.12s;
+      margin-left: auto;
+    }
+    .edit-btn:hover { background: var(--cream-dark); border-color: var(--ink-mid); }
+    .edit-panel {
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      padding: 12px;
+      background: #fff;
+      border: 1px solid var(--stone);
+      border-radius: 8px;
+    }
+    .edit-panel.open { display: flex; }
+    .edit-row { display: flex; flex-direction: column; gap: 3px; }
+    .edit-row label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; color: var(--ink-mid); }
+    .edit-row input, .edit-row select, .edit-row textarea {
+      width: 100%;
+      padding: 7px 10px;
+      border: 1px solid var(--stone);
+      border-radius: 6px;
+      font-size: 13px;
+      font-family: var(--font);
+      color: var(--ink);
+      background: #fff;
+    }
+    .edit-row input:focus, .edit-row select:focus, .edit-row textarea:focus { outline: none; border-color: var(--maroon); }
+    .edit-row textarea { resize: vertical; min-height: 60px; }
+    .edit-photo-preview { max-width: 100%; max-height: 120px; border-radius: 6px; margin-top: 6px; object-fit: cover; }
+    .edit-save-btn {
+      padding: 9px;
+      background: var(--maroon);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: var(--font);
+    }
+    .edit-save-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .edit-upload-label {
+      display: inline-block;
+      padding: 6px 12px;
+      background: var(--cream-dark);
+      border: 1px solid var(--stone);
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--ink-mid);
+    }
+
     /* ── Photo lightbox ── */
     #lightbox {
       display: none;
@@ -604,6 +668,83 @@ function buildCard(job) {
   const doneByHtml = (isDone && doneBy)
     ? `<span class="done-by">Marked done by ${esc(doneBy)}</span>` : '';
 
+  const editPriority = job.priority || '';
+  const editSafety = job.safety_concern || '';
+  const editResp = job.responsible || '';
+  const editCat = job.category || '';
+  const currentPhotoHtml = job.photo
+    ? (isVideo(job.photo)
+        ? `<video class="edit-photo-preview" src="${esc(job.photo)}" controls></video>`
+        : `<img class="edit-photo-preview" src="${esc(job.photo)}" alt="Current photo">`)
+    : '';
+
+  const editPanelHtml = `
+    <div class="edit-panel" id="edit-panel-${esc(job.id)}">
+      <div class="edit-row">
+        <label>Priority</label>
+        <select id="edit-priority-${esc(job.id)}">
+          <option value="">— Not set —</option>
+          <option value="High"${editPriority === 'High' ? ' selected' : ''}>High</option>
+          <option value="Medium"${editPriority === 'Medium' ? ' selected' : ''}>Medium</option>
+          <option value="Low"${editPriority === 'Low' ? ' selected' : ''}>Low</option>
+        </select>
+      </div>
+      <div class="edit-row">
+        <label>Location</label>
+        <input type="text" id="edit-location-${esc(job.id)}" value="${esc(job.location)}">
+      </div>
+      <div class="edit-row">
+        <label>Issue / Description</label>
+        <textarea id="edit-issue-${esc(job.id)}">${esc(job.issue)}</textarea>
+      </div>
+      <div class="edit-row">
+        <label>Safety concern</label>
+        <select id="edit-safety-${esc(job.id)}">
+          <option value="No"${editSafety !== 'Yes' ? ' selected' : ''}>No</option>
+          <option value="Yes"${editSafety === 'Yes' ? ' selected' : ''}>Yes</option>
+        </select>
+      </div>
+      <div class="edit-row">
+        <label>Responsible</label>
+        <select id="edit-responsible-${esc(job.id)}">
+          <option value="">— Not set —</option>
+          <option value="Club"${editResp.includes('Club') ? ' selected' : ''}>🏄 Club</option>
+          <option value="Council"${editResp.includes('Council') ? ' selected' : ''}>🏛️ Council</option>
+          <option value="Trades"${editResp.toLowerCase().includes('trade') ? ' selected' : ''}>🔨 Trades</option>
+          <option value="Working Bee"${editResp.toLowerCase().includes('working') ? ' selected' : ''}>🐝 Working Bee</option>
+        </select>
+      </div>
+      <div class="edit-row">
+        <label>Category</label>
+        <select id="edit-category-${esc(job.id)}">
+          <option value="">— Not set —</option>
+          <option value="Repair"${editCat === 'Repair' ? ' selected' : ''}>🔧 Repair</option>
+          <option value="Replace"${editCat === 'Replace' ? ' selected' : ''}>🔄 Replace</option>
+          <option value="Painting"${editCat === 'Painting' ? ' selected' : ''}>🎨 Painting</option>
+          <option value="Cleaning"${editCat === 'Cleaning' ? ' selected' : ''}>🧹 Cleaning</option>
+          <option value="Gardening"${editCat === 'Gardening' ? ' selected' : ''}>🌿 Gardening</option>
+          <option value="Repair/Paint"${editCat.includes('Paint') && editCat.includes('Repair') ? ' selected' : ''}>🔧🎨 Repair/Paint</option>
+          <option value="Other"${editCat === 'Other' ? ' selected' : ''}>📋 Other</option>
+        </select>
+      </div>
+      <div class="edit-row">
+        <label>Notes</label>
+        <textarea id="edit-notes-${esc(job.id)}">${esc(job.notes || '')}</textarea>
+      </div>
+      <div class="edit-row">
+        <label>Photo / Video</label>
+        ${currentPhotoHtml}
+        <label class="edit-upload-label" for="edit-photo-file-${esc(job.id)}">📷 Take or choose photo / video</label>
+        <input type="file" id="edit-photo-file-${esc(job.id)}" accept="image/*,video/*" style="display:none" onchange="previewEditPhoto('${esc(job.id)}', this)">
+        <div id="edit-photo-new-${esc(job.id)}"></div>
+      </div>
+      <div id="edit-status-${esc(job.id)}" style="font-size:11px;text-align:center;min-height:16px"></div>
+      <div style="display:flex;gap:8px">
+        <button class="edit-save-btn" style="flex:1" onclick="saveEdit('${esc(job.id)}')">Save Changes</button>
+        <button style="flex:0;padding:9px 16px;background:var(--stone);color:var(--ink);border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font)" onclick="closeEditPanel('${esc(job.id)}')">Cancel</button>
+      </div>
+    </div>`;
+
   card.innerHTML = `
     <div class="job-header">
       <div class="job-number">#${esc(job.id)}</div>
@@ -628,6 +769,7 @@ function buildCard(job) {
           onchange="toggleDone('${esc(job.id)}', this.checked)">
         <label class="done-label" for="done-${esc(job.id)}">Mark as completed</label>
         ${doneByHtml}
+        <button class="edit-btn" onclick="openEditPanel('${esc(job.id)}')">✏️ Edit</button>
       </div>
       <div class="feedback-wrap">
         <div class="feedback-label">Notes / Feedback</div>
@@ -638,6 +780,7 @@ function buildCard(job) {
           <span class="save-status" id="save-status-${esc(job.id)}">✓ Saved</span>
         </div>
       </div>
+      ${editPanelHtml}
     </div>`;
 
   return card;
@@ -754,6 +897,86 @@ async function saveFeedback(jobId) {
 function saveName() {
   const name = document.getElementById('volunteer-name').value.trim();
   if (name) localStorage.setItem('freshie_name', name);
+}
+
+// ── Edit panel ────────────────────────────────────────────────
+function openEditPanel(jobId) {
+  const panel = document.getElementById(`edit-panel-${jobId}`);
+  if (panel) panel.classList.toggle('open');
+}
+
+function closeEditPanel(jobId) {
+  const panel = document.getElementById(`edit-panel-${jobId}`);
+  if (panel) panel.classList.remove('open');
+}
+
+function previewEditPhoto(jobId, input) {
+  const file = input.files[0];
+  if (!file) return;
+  const preview = document.getElementById(`edit-photo-new-${jobId}`);
+  if (!preview) return;
+  const url = URL.createObjectURL(file);
+  if (isVideo(file.name)) {
+    preview.innerHTML = `<video class="edit-photo-preview" src="${url}" controls></video>`;
+  } else {
+    preview.innerHTML = `<img class="edit-photo-preview" src="${url}" alt="New photo preview">`;
+  }
+}
+
+async function uploadJobPhoto(file) {
+  const form = new FormData();
+  form.append('photo', file);
+  const res = await fetch(`${API}/surf/upload-photo`, { method: 'POST', body: form });
+  const data = await res.json();
+  if (!data.success) throw new Error(data.error || 'Photo upload failed');
+  return data.url;
+}
+
+async function saveEdit(jobId) {
+  const statusEl = document.getElementById(`edit-status-${jobId}`);
+  const saveBtn = document.querySelector(`#edit-panel-${jobId} .edit-save-btn`);
+  if (saveBtn) saveBtn.disabled = true;
+  if (statusEl) { statusEl.textContent = 'Saving...'; statusEl.style.color = 'var(--ink-mid)'; }
+
+  try {
+    let photoUrl;
+    const fileInput = document.getElementById(`edit-photo-file-${jobId}`);
+    if (fileInput && fileInput.files[0]) {
+      if (statusEl) statusEl.textContent = 'Uploading photo...';
+      photoUrl = await uploadJobPhoto(fileInput.files[0]);
+    }
+
+    const body = {
+      priority: document.getElementById(`edit-priority-${jobId}`)?.value || null,
+      location: document.getElementById(`edit-location-${jobId}`)?.value || null,
+      issue: document.getElementById(`edit-issue-${jobId}`)?.value || null,
+      safety_concern: document.getElementById(`edit-safety-${jobId}`)?.value || null,
+      responsible: document.getElementById(`edit-responsible-${jobId}`)?.value || null,
+      category: document.getElementById(`edit-category-${jobId}`)?.value || null,
+      notes: document.getElementById(`edit-notes-${jobId}`)?.value || null,
+    };
+    if (photoUrl) body.photo = photoUrl;
+
+    const res = await fetch(`${API}/surf/jobs/${encodeURIComponent(jobId)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || 'Save failed');
+
+    const jobIdx = allJobs.findIndex(j => j.id === jobId);
+    if (jobIdx !== -1) {
+      allJobs[jobIdx] = { ...allJobs[jobIdx], ...data.job, id: jobId };
+    }
+
+    const card = document.querySelector(`.job-card[data-id="${jobId}"]`);
+    if (card) card.replaceWith(buildCard(allJobs.find(j => j.id === jobId)));
+
+  } catch (err) {
+    if (statusEl) { statusEl.textContent = '✗ ' + (err.message || 'Could not save'); statusEl.style.color = 'var(--red)'; }
+    if (saveBtn) saveBtn.disabled = false;
+  }
 }
 
 // ── Media helpers ─────────────────────────────────────────────
