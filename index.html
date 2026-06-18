@@ -242,8 +242,19 @@
     .badge-medium { background: var(--orange-light); color: var(--orange); border: 1px solid #fed7aa; }
     .badge-low { background: var(--green-light); color: var(--green); border: 1px solid #bbf7d0; }
     .badge-safety { background: #7B1A1A; color: #fff; }
-    .badge-category { background: var(--wave-light); color: var(--wave); border: 1px solid #bae6fd; }
-    .badge-responsible { background: var(--cream-dark); color: var(--ink-mid); border: 1px solid var(--stone); }
+    /* Category badges */
+    .badge-cat-repair      { background: #fff7ed; color: #c2510a; border: 1px solid #fed7aa; }
+    .badge-cat-replace     { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+    .badge-cat-painting    { background: #f5f3ff; color: #6d28d9; border: 1px solid #ddd6fe; }
+    .badge-cat-cleaning    { background: #f0fdfa; color: #0f766e; border: 1px solid #99f6e4; }
+    .badge-cat-gardening   { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+    .badge-cat-repairpaint { background: #fff4e6; color: #9a3412; border: 1px solid #fdba74; }
+    .badge-cat-other       { background: var(--wave-light); color: var(--wave); border: 1px solid #bae6fd; }
+    /* Responsible badges */
+    .badge-resp-club       { background: #fdf2f2; color: #7B1A1A; border: 1px solid #fca5a5; }
+    .badge-resp-council    { background: #f0f4f8; color: #334e68; border: 1px solid #bcccdc; }
+    .badge-resp-trade      { background: #fdf6ee; color: #7c4a03; border: 1px solid #e4a96a; }
+    .badge-resp-workingbee { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
 
     .job-location {
       font-size: 12px;
@@ -533,6 +544,34 @@ function render() {
   renderStats();
 }
 
+const CATEGORY_MAP = {
+  'repair':       { cls: 'badge-cat-repair',      emoji: '🔧' },
+  'replace':      { cls: 'badge-cat-replace',     emoji: '🔄' },
+  'painting':     { cls: 'badge-cat-painting',    emoji: '🎨' },
+  'cleaning':     { cls: 'badge-cat-cleaning',    emoji: '🧹' },
+  'gardening':    { cls: 'badge-cat-gardening',   emoji: '🌿' },
+  'repair/paint': { cls: 'badge-cat-repairpaint', emoji: '🔧🎨' },
+};
+
+const RESPONSIBLE_MAP = {
+  'club':             { cls: 'badge-resp-club',       emoji: '🏄' },
+  'council':          { cls: 'badge-resp-council',    emoji: '🏛️' },
+  'trade':            { cls: 'badge-resp-trade',      emoji: '🔨' },
+  'working bee':      { cls: 'badge-resp-workingbee', emoji: '🐝' },
+};
+
+function categoryBadgeHtml(cat) {
+  const key = cat.toLowerCase().trim();
+  const def = CATEGORY_MAP[key] || { cls: 'badge-cat-other', emoji: '📋' };
+  return `<span class="badge ${def.cls}">${def.emoji} ${esc(cat)}</span>`;
+}
+
+function responsibleBadgeHtml(resp) {
+  const key = Object.keys(RESPONSIBLE_MAP).find(k => resp.toLowerCase().includes(k));
+  const def = key ? RESPONSIBLE_MAP[key] : { cls: 'badge-resp-club', emoji: '👥' };
+  return `<span class="badge ${def.cls}">${def.emoji} ${esc(resp)}</span>`;
+}
+
 function buildCard(job) {
   const fb = feedbackData[job.id] || {};
   const isDone = fb.done || false;
@@ -550,10 +589,8 @@ function buildCard(job) {
     ? `<span class="badge badge-${job.priority.toLowerCase()}">${job.priority}</span>` : '';
   const safetyBadge = job.safety_concern === 'Yes' || job.safety_concern === true
     ? `<span class="badge badge-safety">⚠ Safety</span>` : '';
-  const categoryBadge = job.category
-    ? `<span class="badge badge-category">${job.category}</span>` : '';
-  const responsibleBadge = job.responsible
-    ? `<span class="badge badge-responsible">${job.responsible}</span>` : '';
+  const categoryBadge = job.category ? categoryBadgeHtml(job.category) : '';
+  const responsibleBadge = job.responsible ? responsibleBadgeHtml(job.responsible) : '';
 
   const photoHtml = job.photo ? buildMediaHtml(job.photo) : '';
 
