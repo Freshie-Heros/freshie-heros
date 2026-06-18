@@ -225,6 +225,8 @@
     .job-card.is-done .job-title { text-decoration: line-through; color: #aaa; }
     .job-card.is-done.card-focused { opacity: 1; }
     .job-card.is-done.card-focused .job-title { text-decoration: none; color: var(--ink); }
+    #jobs-wrap.has-focused .job-card:not(.card-focused) { opacity: 0.35; transition: opacity 0.25s; }
+    #jobs-wrap.has-focused .job-card.card-focused { transition: opacity 0.25s; }
     #jobs-wrap.completed-view .job-card.is-done { opacity: 1; }
     #jobs-wrap.completed-view .job-card.is-done .job-title { text-decoration: none; color: var(--ink); }
     .job-card.hidden { display: none; }
@@ -1084,7 +1086,10 @@ async function toggleDone(jobId, done) {
     if (card && job) {
       const newCard = buildCard(job);
       card.replaceWith(newCard);
-      if (done) newCard.classList.add('card-focused');
+      if (done) {
+        newCard.classList.add('card-focused');
+        document.getElementById('jobs-wrap').classList.add('has-focused');
+      }
     }
     renderStats();
     applyFilters();
@@ -1470,7 +1475,10 @@ function printCompletedReport() {
 
 document.addEventListener('click', (e) => {
   document.querySelectorAll('.job-card.card-focused').forEach(card => {
-    if (!card.contains(e.target)) card.classList.remove('card-focused');
+    if (!card.contains(e.target)) {
+      card.classList.remove('card-focused');
+      document.getElementById('jobs-wrap').classList.remove('has-focused');
+    }
   });
 });
 </script>
