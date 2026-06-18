@@ -96,6 +96,19 @@
     .back-link { margin-top: 20px; text-align: center; }
     .back-link a { color: #7B1A1A; font-size: 14px; text-decoration: none; font-weight: 600; }
     .back-link a:hover { text-decoration: underline; }
+    .activity-section { margin-top: 32px; padding-top: 28px; border-top: 1px solid #ebe4d6; }
+    .activity-section h3 { font-size: 15px; font-weight: 700; color: #2C2C2A; margin-bottom: 4px; }
+    .activity-section p { font-size: 12px; color: #888; margin-bottom: 14px; }
+    .activity-load-btn { width: 100%; padding: 11px; background: #f5f0e8; color: #7B1A1A; border: 1.5px solid #D3CFC7; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; transition: background 0.2s; }
+    .activity-load-btn:hover { background: #ebe4d6; }
+    .activity-table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px; }
+    .activity-table th { text-align: left; font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.05em; padding: 6px 8px; border-bottom: 1px solid #ebe4d6; }
+    .activity-table td { padding: 9px 8px; border-bottom: 1px solid #f0ebe0; color: #2C2C2A; vertical-align: top; }
+    .activity-table tr:last-child td { border-bottom: none; }
+    .name-cell { font-weight: 700; color: #7B1A1A; }
+    .anon-cell { color: #aaa; font-style: italic; }
+    .duration-pill { display: inline-block; background: #e8f5e8; color: #2d6a2d; border-radius: 20px; padding: 2px 8px; font-size: 11px; font-weight: 700; }
+    .activity-empty { text-align: center; color: #aaa; font-style: italic; padding: 20px 0; font-size: 13px; }
   </style>
 </head>
 <body>
@@ -134,6 +147,13 @@
       <li>Choose the CSV file you just saved</li>
       <li>Click Upload — new jobs are added, existing jobs are updated, nothing else is touched</li>
     </ol>
+  </div>
+
+  <div class="activity-section">
+    <h3>👥 Member Activity</h3>
+    <p>Who has been on the job board, when, and for how long.</p>
+    <button class="activity-load-btn" id="activity-btn" onclick="loadActivity()">Load Activity — enter password above first</button>
+    <div id="activity-result"></div>
   </div>
 
   <div class="back-link">
@@ -211,6 +231,64 @@ function showResult(type, msg) {
   const el = document.getElementById('result');
   el.className = 'result ' + type;
   el.textContent = msg;
+}
+
+async function loadActivity() {
+  const password = document.getElementById('password').value.trim();
+  if (!password) { alert('Enter the admin password first.'); return; }
+
+  const btn = document.getElementById('activity-btn');
+  const container = document.getElementById('activity-result');
+  btn.textContent = 'Loading...';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch(`${API}/surf/sessions?password=${encodeURIComponent(password)}`);
+    const data = await res.json();
+    if (!data.success) { container.innerHTML = `<p class="activity-empty">${data.error || 'Could not load activity.'}</p>`; return; }
+
+    const sessions = data.sessions;
+    if (sessions.length === 0) {
+      container.innerHTML = '<p class="activity-empty">No activity recorded yet.</p>';
+      return;
+    }
+
+    const rows = sessions.map(s => {
+      const name = s.volunteer_name && s.volunteer_name !== 'Unknown'
+        ? `<span class="name-cell">${esc(s.volunteer_name)}</span>`
+        : `<span class="anon-cell">Unknown</span>`;
+      const date = new Date(s.started_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
+      const time = new Date(s.started_at).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' });
+      const dur = s.duration_seconds != null ? fmtDuration(s.duration_seconds) : '—';
+      const active = !s.ended_at && (Date.now() - new Date(s.last_seen_at).getTime()) < 90000;
+      const durHtml = active
+        ? `<span class="duration-pill" style="background:#e6f3f8;color:#1a6b8a;">● Online now</span>`
+        : `<span class="duration-pill">${dur}</span>`;
+      return `<tr><td>${name}</td><td>${date}<br><span style="color:#aaa;font-size:11px;">${time}</span></td><td>${durHtml}</td></tr>`;
+    }).join('');
+
+    container.innerHTML = `
+      <table class="activity-table">
+        <thead><tr><th>Member</th><th>Visited</th><th>Time on site</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+    btn.textContent = '↻ Refresh';
+  } catch {
+    container.innerHTML = '<p class="activity-empty">Could not connect. Try again.</p>';
+    btn.textContent = 'Load Activity';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function fmtDuration(secs) {
+  if (secs < 60) return `${secs}s`;
+  if (secs < 3600) return `${Math.floor(secs / 60)}m ${secs % 60}s`;
+  return `${Math.floor(secs / 3600)}h ${Math.floor((secs % 3600) / 60)}m`;
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 </script>
 </body>

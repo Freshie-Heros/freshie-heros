@@ -1219,7 +1219,42 @@ async function deleteComment(commentId, jobId) {
 function saveName() {
   const name = document.getElementById('volunteer-name').value.trim();
   if (name) localStorage.setItem('freshie_name', name);
+  sessionPing(name);
 }
+
+// ── Session tracking ─────────────────────────────────────────
+const SESSION_ID = (() => {
+  let id = sessionStorage.getItem('freshie_session_id');
+  if (!id) { id = crypto.randomUUID(); sessionStorage.setItem('freshie_session_id', id); }
+  return id;
+})();
+
+function sessionName() {
+  return document.getElementById('volunteer-name')?.value.trim() || localStorage.getItem('freshie_name') || null;
+}
+
+async function sessionPing(name) {
+  try {
+    await fetch(`${API}/surf/session/heartbeat`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ session_id: SESSION_ID, volunteer_name: name || sessionName() })
+    });
+  } catch {}
+}
+
+// Start session on load
+fetch(`${API}/surf/session/start`, {
+  method: 'POST', headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ session_id: SESSION_ID, volunteer_name: sessionName() })
+}).catch(() => {});
+
+// Heartbeat every 30 seconds
+setInterval(() => sessionPing(), 30000);
+
+// End session on page close
+window.addEventListener('beforeunload', () => {
+  navigator.sendBeacon(`${API}/surf/session/end`, JSON.stringify({ session_id: SESSION_ID }));
+});
 
 // ── Edit panel ────────────────────────────────────────────────
 function openEditPanel(jobId) {
