@@ -1226,10 +1226,18 @@ function updateMultiFilter(ddId, labelId, allLabel) {
   const label = document.getElementById(labelId);
   label.textContent = checked.length === 0 ? allLabel : checked.length === 1 ? checked[0] : `${checked.length} selected`;
   applyFilters();
+  if (window.innerWidth < 640) closeAllDropdowns();
 }
 
 function toggleRespDropdown(e) { toggleDropdown(e, 'resp-dropdown', 'resp-btn'); }
 function updateRespFilter() { updateMultiFilter('resp-dropdown', 'resp-label', '👥 All responsible'); }
+
+function closeAllDropdowns() {
+  MULTI_DROPDOWNS.forEach(id => document.getElementById(id)?.classList.remove('open'));
+  document.getElementById('priority-btn')?.classList.remove('active');
+  document.getElementById('category-btn')?.classList.remove('active');
+  document.getElementById('resp-btn')?.classList.remove('active');
+}
 
 document.addEventListener('click', e => {
   MULTI_DROPDOWNS.forEach(id => {
