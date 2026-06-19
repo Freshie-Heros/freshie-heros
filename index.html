@@ -1454,6 +1454,8 @@ function rebuildCard(jobId) {
 }
 
 async function saveHeroes(jobId) {
+  const input = document.getElementById(`heroes-input-${jobId}`);
+  if (input && input.value.trim()) addHeroTag(jobId);
   const heroes = (heroTags[jobId] || []).join(', ');
   try {
     const res = await fetch(`${API}/surf/jobs/${jobId}/heroes`, {
