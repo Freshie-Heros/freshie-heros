@@ -1441,8 +1441,8 @@ async function postComment(jobId) {
 
 // ── Comments section expand ──────────────────────────────────
 function expandComments(jobId) {
-  document.getElementById(`cmnt-toggle-${CSS.escape(jobId)}`)?.remove();
-  const body = document.getElementById(`cmnt-body-${CSS.escape(jobId)}`);
+  document.getElementById(`cmnt-toggle-${jobId}`)?.remove();
+  const body = document.getElementById(`cmnt-body-${jobId}`);
   if (body) body.style.display = '';
 }
 
