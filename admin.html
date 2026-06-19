@@ -279,7 +279,7 @@ async function loadActivity() {
       const date = new Date(s.started_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
       const time = new Date(s.started_at).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' });
       const dur = s.duration_seconds != null ? fmtDuration(s.duration_seconds) : '—';
-      const active = !s.ended_at && (Date.now() - new Date(s.last_seen_at).getTime()) < 90000;
+      const active = !s.ended_at && (Date.now() - new Date(s.last_seen_at).getTime()) < 45000;
       const durHtml = active
         ? `<span class="duration-pill" style="background:#e6f3f8;color:#1a6b8a;">● Online now</span>`
         : `<span class="duration-pill">${dur}</span>`;
