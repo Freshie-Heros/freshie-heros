@@ -1242,7 +1242,7 @@ function toggleDropdown(e, ddId, btnId) {
 function updateMultiFilter(ddId, labelId, allLabel) {
   const checked = [...document.querySelectorAll(`#${ddId} input:checked`)].map(el => el.value);
   const label = document.getElementById(labelId);
-  label.textContent = checked.length === 0 ? allLabel : checked.length === 1 ? checked[0] : `${checked.length} selected`;
+  label.textContent = checked.length === 0 ? allLabel : checked.join(', ');
   applyFilters();
   if (window.innerWidth < 640) closeAllDropdowns();
 }
