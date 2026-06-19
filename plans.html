@@ -122,10 +122,15 @@
     .plan-job-text { flex: 1; min-width: 0; }
     .plan-job-photo-wrap { flex-shrink: 0; width: 130px; }
     .plan-job-photo-wrap img, .plan-job-photo-wrap video { width: 130px; border-radius: 7px; border: 1px solid var(--stone); display: block; }
-    @media (max-width: 500px) {
+    @media (max-width: 600px) {
       .plan-job-cols { flex-direction: column; }
       .plan-job-photo-wrap { width: 100%; }
       .plan-job-photo-wrap img, .plan-job-photo-wrap video { width: 100%; max-height: 180px; object-fit: cover; }
+      .plan-job-header { flex-direction: column; align-items: stretch; gap: 8px; }
+      .plan-job-header-actions { flex-direction: row; justify-content: space-between; }
+      .status-select { flex: 1; }
+      .volunteer-name-row { flex-direction: column; align-items: flex-start; }
+      .volunteer-name-row input { width: 100%; }
     }
 
     .field-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-light); margin-bottom: 4px; margin-top: 10px; }
