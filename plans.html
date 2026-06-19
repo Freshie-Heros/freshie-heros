@@ -400,12 +400,12 @@ function buildPlanJobCard(pj) {
       <button class="assign-save-btn no-print" onclick="saveAssigned('${pj.id}')">Save</button>
     </div>
     <div class="checklist-section">
-      <div class="field-label">Checklist</div>
+      <div class="field-label">Tasks &amp; Instructions</div>
       <div id="checklist-${pj.id}">
         ${pj.checklist.map(c => buildChecklistItem(pj.id, c)).join('')}
       </div>
       <div class="checklist-add-row no-print">
-        <input class="checklist-add-input" id="chk-input-${pj.id}" type="text" placeholder="Add a task…" onkeydown="if(event.key==='Enter')addChecklistItem('${pj.id}')">
+        <input class="checklist-add-input" id="chk-input-${pj.id}" type="text" placeholder="Add a task or further instructions…" onkeydown="if(event.key==='Enter')addChecklistItem('${pj.id}')">
         <button class="btn-secondary btn-sm" onclick="addChecklistItem('${pj.id}')">Add</button>
       </div>
     </div>
