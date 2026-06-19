@@ -1398,6 +1398,19 @@ function closeHeroInput(jobId) {
   document.getElementById(`heroes-row-${jobId}`).style.display = 'flex';
 }
 
+function rebuildCard(jobId) {
+  const card = document.querySelector(`.job-card[data-id="${jobId}"]`);
+  const job = allJobs.find(j => j.id === jobId);
+  if (!card || !job) return;
+  const wasFocused = card.classList.contains('card-focused');
+  const newCard = buildCard(job);
+  card.replaceWith(newCard);
+  if (wasFocused) {
+    newCard.classList.add('card-focused');
+    document.getElementById('jobs-wrap').classList.add('has-focused');
+  }
+}
+
 async function saveHeroes(jobId) {
   const input = document.getElementById(`heroes-input-${jobId}`);
   const heroes = input.value.trim();
@@ -1411,9 +1424,7 @@ async function saveHeroes(jobId) {
     if (!data.success) throw new Error(data.error);
     if (!feedbackData[jobId]) feedbackData[jobId] = {};
     feedbackData[jobId].heroes = heroes;
-    const card = document.querySelector(`.job-card[data-id="${jobId}"]`);
-    const job = allJobs.find(j => j.id === jobId);
-    if (card && job) card.replaceWith(buildCard(job));
+    rebuildCard(jobId);
   } catch {
     alert('Could not save heroes. Please try again.');
   }
