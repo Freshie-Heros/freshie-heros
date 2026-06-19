@@ -823,7 +823,7 @@
         </div>
         <div id="lj-photo-preview" style="margin-top:8px;"></div>
       </div>
-      <div id="lj-error" style="display:none; color:var(--maroon); font-size:13px; font-weight:600;"></div>
+      <div id="lj-error" style="display:none; background:#fef2f2; border:1px solid #fecaca; border-radius:8px; padding:10px 14px; font-size:13px; color:#b91c1c; line-height:1.5;"></div>
     </div>
     <div class="log-job-footer">
       <button class="log-job-cancel" onclick="closeLogJobModal()">Cancel</button>
@@ -1502,8 +1502,9 @@ async function uploadJobPhoto(file) {
   const form = new FormData();
   form.append('photo', file);
   const res = await fetch(`${API}/surf/upload-photo`, { method: 'POST', body: form });
-  const data = await res.json();
-  if (!data.success) throw new Error(data.error || 'Photo upload failed');
+  let data;
+  try { data = await res.json(); } catch { throw new Error('Server error during photo upload — please let your admin know.'); }
+  if (!data.success) throw new Error(data.error || 'Photo upload failed.');
   return data.url;
 }
 
@@ -1883,7 +1884,7 @@ async function submitLogJob() {
     }, 100);
   } catch (err) {
     const errEl = document.getElementById('lj-error');
-    errEl.textContent = err.message || 'Could not log the job. Try again.';
+    errEl.innerHTML = `<strong>Something went wrong:</strong> ${esc(err.message || 'Could not log the job.')}<br><span style="font-size:12px;opacity:0.8;">Please let your admin know so they can fix this.</span>`;
     errEl.style.display = 'block';
     btn.disabled = false;
     btn.textContent = 'Log this Job';
