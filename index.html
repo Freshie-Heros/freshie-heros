@@ -533,6 +533,105 @@
       z-index: 1000;
     }
 
+    /* ── Log a Job modal ── */
+    #log-job-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 900;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 24px 16px;
+      overflow-y: auto;
+    }
+    #log-job-overlay.open { display: flex; }
+    #log-job-modal {
+      background: #fff;
+      border-radius: 14px;
+      width: 100%;
+      max-width: 520px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+      overflow: hidden;
+      margin: auto;
+    }
+    .log-job-header {
+      background: var(--maroon);
+      color: #fff;
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .log-job-header h2 { font-size: 17px; font-weight: 700; margin: 0; }
+    .log-job-close {
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.8);
+      font-size: 22px;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0;
+    }
+    .log-job-close:hover { color: #fff; }
+    .log-job-body { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+    .log-job-field { display: flex; flex-direction: column; gap: 5px; }
+    .log-job-field label { font-size: 12px; font-weight: 700; color: var(--ink-mid); text-transform: uppercase; letter-spacing: 0.04em; }
+    .log-job-field label .req { color: var(--maroon); margin-left: 2px; }
+    .log-job-input, .log-job-select, .log-job-textarea {
+      padding: 9px 12px;
+      border: 1.5px solid var(--stone);
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: var(--font);
+      color: var(--ink);
+      background: #fff;
+      transition: border-color 0.2s;
+      outline: none;
+    }
+    .log-job-input:focus, .log-job-select:focus, .log-job-textarea:focus { border-color: var(--maroon); }
+    .log-job-textarea { resize: vertical; min-height: 72px; }
+    .log-job-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .log-job-safety { display: flex; align-items: center; gap: 8px; padding: 9px 12px; border: 1.5px solid var(--stone); border-radius: 8px; cursor: pointer; }
+    .log-job-safety input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--maroon); cursor: pointer; flex-shrink: 0; }
+    .log-job-safety span { font-size: 13px; color: var(--ink); font-weight: 600; }
+    .log-job-footer { padding: 0 20px 20px; display: flex; gap: 10px; justify-content: flex-end; }
+    .log-job-cancel {
+      padding: 10px 18px;
+      background: var(--cream-dark);
+      color: var(--ink-mid);
+      border: 1px solid var(--stone);
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: var(--font);
+    }
+    .log-job-submit {
+      padding: 10px 22px;
+      background: var(--maroon);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: var(--font);
+      transition: background 0.2s;
+    }
+    .log-job-submit:hover:not(:disabled) { background: #5a1212; }
+    .log-job-submit:disabled { background: #bbb; cursor: not-allowed; }
+    .log-job-hero-badge {
+      background: var(--cream);
+      border: 1px solid var(--stone);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: var(--ink-mid);
+      line-height: 1.5;
+    }
+    .log-job-hero-badge strong { color: var(--maroon); font-size: 13px; display: block; margin-bottom: 2px; }
+
     /* ── Mobile ── */
     @media (max-width: 600px) {
       .controls { gap: 8px; }
@@ -542,6 +641,7 @@
       .job-photo-wrap { padding-left: 16px; }
       .job-notes { padding-left: 16px; }
       .job-date { padding-left: 16px; }
+      .log-job-row { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -608,6 +708,7 @@
   </div>
   <button class="toggle-done" id="toggle-done-btn" onclick="toggleShowDone()">Hide Completed</button>
   <button class="toggle-done" id="completed-jobs-btn" onclick="toggleCompletedView()">✅ Completed Jobs</button>
+  <button class="toggle-done" onclick="openLogJobModal()" style="background:var(--maroon);color:#fff;border-color:var(--maroon);">➕ Log a Job</button>
 </div>
 
 <!-- Completed view print bar -->
@@ -633,6 +734,81 @@
   <div class="empty-state">
     <div class="icon">🌊</div>
     <p>Loading jobs...</p>
+  </div>
+</div>
+
+<!-- Log a Job modal -->
+<div id="log-job-overlay" onclick="closeLogJobOnOverlay(event)">
+  <div id="log-job-modal" role="dialog" aria-modal="true" aria-labelledby="log-job-title">
+    <div class="log-job-header">
+      <h2 id="log-job-title">🛠️ Log a New Job</h2>
+      <button class="log-job-close" onclick="closeLogJobModal()" aria-label="Close">✕</button>
+    </div>
+    <div class="log-job-body">
+      <div class="log-job-hero-badge">
+        <strong>🦸 Hero jobs</strong>
+        Jobs you log here get a <strong>Hero #</strong> number so they're easy to spot alongside the main job list.
+      </div>
+      <div class="log-job-field">
+        <label>What needs doing<span class="req">*</span></label>
+        <textarea id="lj-issue" class="log-job-textarea" placeholder="Describe the job — e.g. Repair broken gate latch on boatshed door"></textarea>
+      </div>
+      <div class="log-job-field">
+        <label>Location</label>
+        <input type="text" id="lj-location" class="log-job-input" placeholder="e.g. Boatshed, Clubhouse, Car park…">
+      </div>
+      <div class="log-job-row">
+        <div class="log-job-field">
+          <label>Priority</label>
+          <select id="lj-priority" class="log-job-select">
+            <option value="">— Select —</option>
+            <option value="High">🔴 High</option>
+            <option value="Medium">🟠 Medium</option>
+            <option value="Low">🟢 Low</option>
+          </select>
+        </div>
+        <div class="log-job-field">
+          <label>Category</label>
+          <select id="lj-category" class="log-job-select">
+            <option value="">— Select —</option>
+            <option value="Repair">🔧 Repair</option>
+            <option value="Replace">🔄 Replace</option>
+            <option value="Painting">🎨 Painting</option>
+            <option value="Cleaning">🧹 Cleaning</option>
+            <option value="Gardening">🌿 Gardening</option>
+            <option value="Repair/Paint">🔧🎨 Repair/Paint</option>
+          </select>
+        </div>
+      </div>
+      <div class="log-job-row">
+        <div class="log-job-field">
+          <label>Responsible</label>
+          <select id="lj-responsible" class="log-job-select">
+            <option value="">— Select —</option>
+            <option value="Club">🏄 Club</option>
+            <option value="Council">🏛️ Council</option>
+            <option value="Trades">🔨 Trades</option>
+            <option value="Working Bee">🐝 Working Bee</option>
+          </select>
+        </div>
+        <div class="log-job-field">
+          <label>Safety concern?</label>
+          <label class="log-job-safety">
+            <input type="checkbox" id="lj-safety">
+            <span>⚠️ Yes — flag as safety issue</span>
+          </label>
+        </div>
+      </div>
+      <div class="log-job-field">
+        <label>Notes (optional)</label>
+        <textarea id="lj-notes" class="log-job-textarea" style="min-height:52px;" placeholder="Any extra details, context, or instructions…"></textarea>
+      </div>
+      <div id="lj-error" style="display:none; color:var(--maroon); font-size:13px; font-weight:600;"></div>
+    </div>
+    <div class="log-job-footer">
+      <button class="log-job-cancel" onclick="closeLogJobModal()">Cancel</button>
+      <button class="log-job-submit" id="lj-submit" onclick="submitLogJob()">Log this Job</button>
+    </div>
   </div>
 </div>
 
@@ -1526,6 +1702,91 @@ function printCompletedReport() {
   win.focus();
   win.print();
 }
+
+// ── Log a Job ────────────────────────────────────────────────
+function openLogJobModal() {
+  document.getElementById('lj-issue').value = '';
+  document.getElementById('lj-location').value = '';
+  document.getElementById('lj-priority').value = '';
+  document.getElementById('lj-category').value = '';
+  document.getElementById('lj-responsible').value = '';
+  document.getElementById('lj-safety').checked = false;
+  document.getElementById('lj-notes').value = '';
+  document.getElementById('lj-error').style.display = 'none';
+  document.getElementById('lj-submit').disabled = false;
+  document.getElementById('lj-submit').textContent = 'Log this Job';
+  document.getElementById('log-job-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  setTimeout(() => document.getElementById('lj-issue').focus(), 80);
+}
+
+function closeLogJobModal() {
+  document.getElementById('log-job-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function closeLogJobOnOverlay(e) {
+  if (e.target === document.getElementById('log-job-overlay')) closeLogJobModal();
+}
+
+async function submitLogJob() {
+  const issue = document.getElementById('lj-issue').value.trim();
+  if (!issue) {
+    const err = document.getElementById('lj-error');
+    err.textContent = 'Please describe what needs doing.';
+    err.style.display = 'block';
+    document.getElementById('lj-issue').focus();
+    return;
+  }
+  document.getElementById('lj-error').style.display = 'none';
+  const btn = document.getElementById('lj-submit');
+  btn.disabled = true;
+  btn.textContent = 'Logging…';
+
+  const body = {
+    issue,
+    location: document.getElementById('lj-location').value.trim() || null,
+    priority: document.getElementById('lj-priority').value || null,
+    category: document.getElementById('lj-category').value || null,
+    responsible: document.getElementById('lj-responsible').value || null,
+    safety_concern: document.getElementById('lj-safety').checked ? 'Yes' : null,
+    notes: document.getElementById('lj-notes').value.trim() || null,
+  };
+
+  try {
+    const res = await fetch(`${API}/surf/jobs`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || 'Could not save job.');
+
+    // Add new job to local list and re-render
+    allJobs.unshift({ ...data.job, id: data.job.job_id });
+    closeLogJobModal();
+    applyFilters();
+    updateStats();
+
+    // Briefly highlight the new card
+    setTimeout(() => {
+      const newCard = document.querySelector(`.job-card[data-id="${data.job.job_id}"]`);
+      if (newCard) {
+        newCard.style.outline = '2.5px solid var(--maroon)';
+        newCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        setTimeout(() => { newCard.style.outline = ''; }, 2500);
+      }
+    }, 100);
+  } catch (err) {
+    const errEl = document.getElementById('lj-error');
+    errEl.textContent = err.message || 'Could not log the job. Try again.';
+    errEl.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Log this Job';
+  }
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && document.getElementById('log-job-overlay').classList.contains('open')) {
+    closeLogJobModal();
+  }
+});
 
 document.addEventListener('click', (e) => {
   const clickedCard = e.target.closest('.job-card');
