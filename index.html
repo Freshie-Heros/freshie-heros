@@ -757,7 +757,7 @@
 <div class="name-banner">
   <div class="name-row">
     <label for="volunteer-name">👤 Your name:</label>
-    <input type="text" id="volunteer-name" placeholder="Enter your name to log updates..." oninput="saveName()">
+    <input type="text" id="volunteer-name" placeholder="Enter your name to log updates..." oninput="saveName()" enterkeyhint="done" onkeydown="if(event.key==='Enter')this.blur()">
     <span class="name-hint">Used when you mark jobs done or add feedback</span>
   </div>
 </div>
@@ -1659,6 +1659,11 @@ function saveName() {
   if (name) localStorage.setItem('freshie_name', name);
   sessionPing(name);
 }
+
+window.addEventListener('scroll', () => {
+  const el = document.getElementById('volunteer-name');
+  if (el && document.activeElement === el) el.blur();
+}, { passive: true });
 
 // ── Session tracking ─────────────────────────────────────────
 const SESSION_ID = (() => {
