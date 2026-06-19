@@ -707,10 +707,10 @@
       <span class="multi-select-arrow">▾</span>
     </button>
     <div class="multi-select-dropdown" id="resp-dropdown">
-      <label class="multi-select-option"><input type="checkbox" value="Club" onchange="updateRespFilter()"> 🏄 Club</label>
+      <label class="multi-select-option"><input type="checkbox" id="resp-club" value="Club" onchange="updateRespFilter()"> 🏄 Club</label>
       <label class="multi-select-option"><input type="checkbox" value="Council" onchange="updateRespFilter()"> 🏛️ Council</label>
       <label class="multi-select-option"><input type="checkbox" value="Trades" onchange="updateRespFilter()"> 🔨 Trades</label>
-      <label class="multi-select-option"><input type="checkbox" value="Working Bee" onchange="updateRespFilter()"> 🐝 Working Bee</label>
+      <label class="multi-select-option"><input type="checkbox" id="resp-workingbee" value="Working Bee (Club)" onchange="updateRespFilter()"> 🐝 Working Bee (Club)</label>
     </div>
   </div>
   <button class="clear-filters-btn" id="clear-filters-btn" onclick="clearAllFilters()" style="display:none">✕ Clear filters</button>
@@ -800,7 +800,7 @@
             <option value="Club">🏄 Club</option>
             <option value="Council">🏛️ Council</option>
             <option value="Trades">🔨 Trades</option>
-            <option value="Working Bee">🐝 Working Bee</option>
+            <option value="Working Bee (Club)">🐝 Working Bee (Club)</option>
           </select>
         </div>
         <div class="log-job-field">
@@ -946,6 +946,7 @@ const RESPONSIBLE_MAP = {
   'council':          { cls: 'badge-resp-council',    emoji: '🏛️' },
   'trade':            { cls: 'badge-resp-trade',      emoji: '🔨' },
   'working bee':      { cls: 'badge-resp-workingbee', emoji: '🐝' },
+  'working bee (club)': { cls: 'badge-resp-workingbee', emoji: '🐝' },
 };
 
 function categoryBadgeHtml(cat) {
@@ -1130,7 +1131,7 @@ function buildCard(job) {
           <option value="Club"${editResp.includes('Club') ? ' selected' : ''}>🏄 Club</option>
           <option value="Council"${editResp.includes('Council') ? ' selected' : ''}>🏛️ Council</option>
           <option value="Trades"${editResp.toLowerCase().includes('trade') ? ' selected' : ''}>🔨 Trades</option>
-          <option value="Working Bee"${editResp.toLowerCase().includes('working') ? ' selected' : ''}>🐝 Working Bee</option>
+          <option value="Working Bee (Club)"${editResp.toLowerCase().includes('working') ? ' selected' : ''}>🐝 Working Bee (Club)</option>
         </select>
       </div>
       <div class="edit-row">
@@ -1247,7 +1248,12 @@ function updateMultiFilter(ddId, labelId, allLabel) {
 }
 
 function toggleRespDropdown(e) { toggleDropdown(e, 'resp-dropdown', 'resp-btn'); }
-function updateRespFilter() { updateMultiFilter('resp-dropdown', 'resp-label', '👥 All responsible'); }
+function updateRespFilter() {
+  const clubEl = document.getElementById('resp-club');
+  const wbEl = document.getElementById('resp-workingbee');
+  if (clubEl && wbEl && clubEl.checked && !wbEl.checked) wbEl.checked = true;
+  updateMultiFilter('resp-dropdown', 'resp-label', '👥 All responsible');
+}
 
 function closeAllDropdowns() {
   MULTI_DROPDOWNS.forEach(id => document.getElementById(id)?.classList.remove('open'));
