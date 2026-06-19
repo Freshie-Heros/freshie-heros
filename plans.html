@@ -183,17 +183,28 @@
       .topbar, .no-print { display: none !important; }
       body { background: #fff; }
       .page { padding: 0; max-width: 100%; }
-      .plan-job-card { break-inside: avoid; border: 1px solid #ccc; margin-bottom: 16px; }
-      .plan-job-photo-wrap img, .plan-job-photo-wrap video { width: 110px; }
-      .update-photo img, .update-photo video { max-width: 110px; }
+      .plan-jobs { gap: 8px; }
+      .plan-job-card { break-inside: avoid; border: 1px solid #ccc; margin-bottom: 0; border-radius: 6px; }
+      .plan-job-header { padding: 7px 12px; }
+      .plan-job-body { padding: 7px 12px; }
+      .plan-job-title { font-size: 13px; }
+      .plan-job-loc { font-size: 11px; }
+      .plan-job-badges { margin-top: 3px; }
+      .badge { font-size: 10px; padding: 1px 7px; }
+      .field-label { font-size: 9px; margin-top: 6px; }
+      .field-value { font-size: 12px; line-height: 1.4; }
+      .checklist-item { padding: 2px 0; }
+      .checklist-item-text { font-size: 12px; }
+      .plan-job-photo-wrap img, .plan-job-photo-wrap video { width: 90px; }
+      .update-photo img, .update-photo video { max-width: 90px; }
       .add-update-form, .updates-section .add-update-actions, .assign-row button,
       .checklist-add-row, .checklist-delete-btn, .update-delete-btn,
       .plan-job-header-actions, .detail-header-actions, .job-selector { display: none !important; }
       .print-header { display: block !important; }
     }
-    .print-header { display: none; padding: 0 0 16px; border-bottom: 2px solid var(--maroon); margin-bottom: 20px; }
-    .print-header h1 { font-size: 22px; font-weight: 700; color: var(--maroon); }
-    .print-header p { font-size: 13px; color: var(--ink-light); margin-top: 4px; }
+    .print-header { display: none; padding: 0 0 10px; border-bottom: 2px solid var(--maroon); margin-bottom: 14px; }
+    .print-header h1 { font-size: 18px; font-weight: 700; color: var(--maroon); }
+    .print-header p { font-size: 12px; color: var(--ink-light); margin-top: 3px; }
   </style>
 </head>
 <body>
