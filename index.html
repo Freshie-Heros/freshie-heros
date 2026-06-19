@@ -1046,7 +1046,7 @@ function buildCard(job) {
       }).join('')
     : '<div class="no-comments">No comments yet — be the first to add one.</div>';
 
-  const hasActivity = jobComments.length > 0 || !!job.photo;
+  const hasActivity = jobComments.length > 0;
   const cmntBodyHtml = `
     <div class="comment-thread">${threadHtml}</div>
     <div class="comment-add">
