@@ -750,6 +750,10 @@
         Jobs you log here get a <strong>Hero #</strong> number so they're easy to spot alongside the main job list.
       </div>
       <div class="log-job-field">
+        <label>Your name<span class="req">*</span></label>
+        <input type="text" id="lj-name" class="log-job-input" placeholder="Enter your name…">
+      </div>
+      <div class="log-job-field">
         <label>What needs doing<span class="req">*</span></label>
         <textarea id="lj-issue" class="log-job-textarea" placeholder="Describe the job — e.g. Repair broken gate latch on boatshed door"></textarea>
       </div>
@@ -967,8 +971,9 @@ function buildCard(job) {
   const notesHtml = job.notes
     ? `<div class="job-notes">${esc(job.notes)}</div>` : '';
 
+  const isHeroJob = (job.id || '').startsWith('Hero #');
   const dateHtml = job.date
-    ? `<div class="job-date">Logged ${fmtDate(job.date)}</div>` : '';
+    ? `<div class="job-date">Logged ${fmtDate(job.date)}${isHeroJob && job.logged_by ? ` by ${esc(job.logged_by)}` : ''}</div>` : '';
 
   const doneByHtml = (isDone && doneBy)
     ? `<span class="done-by">Marked done by ${esc(doneBy)}</span>` : '';
@@ -1741,6 +1746,8 @@ function stageLjPhoto(input) {
 }
 
 function openLogJobModal() {
+  const savedName = document.getElementById('volunteer-name').value.trim() || localStorage.getItem('freshie_name') || '';
+  document.getElementById('lj-name').value = savedName;
   document.getElementById('lj-issue').value = '';
   document.getElementById('lj-location').value = '';
   document.getElementById('lj-priority').value = '';
@@ -1758,7 +1765,11 @@ function openLogJobModal() {
   document.getElementById('lj-submit').textContent = 'Log this Job';
   document.getElementById('log-job-overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
-  setTimeout(() => document.getElementById('lj-issue').focus(), 80);
+  setTimeout(() => {
+    const nameEl = document.getElementById('lj-name');
+    if (!nameEl.value) nameEl.focus();
+    else document.getElementById('lj-issue').focus();
+  }, 80);
 }
 
 function closeLogJobModal() {
@@ -1771,21 +1782,34 @@ function closeLogJobOnOverlay(e) {
 }
 
 async function submitLogJob() {
+  const name = document.getElementById('lj-name').value.trim();
   const issue = document.getElementById('lj-issue').value.trim();
+  const errEl = document.getElementById('lj-error');
+
+  if (!name) {
+    errEl.textContent = 'Please enter your name.';
+    errEl.style.display = 'block';
+    document.getElementById('lj-name').focus();
+    return;
+  }
   if (!issue) {
-    const err = document.getElementById('lj-error');
-    err.textContent = 'Please describe what needs doing.';
-    err.style.display = 'block';
+    errEl.textContent = 'Please describe what needs doing.';
+    errEl.style.display = 'block';
     document.getElementById('lj-issue').focus();
     return;
   }
-  document.getElementById('lj-error').style.display = 'none';
+  errEl.style.display = 'none';
   const btn = document.getElementById('lj-submit');
   btn.disabled = true;
   btn.textContent = 'Logging…';
 
+  // Sync name back to the main volunteer name field
+  document.getElementById('volunteer-name').value = name;
+  localStorage.setItem('freshie_name', name);
+
   const body = {
     issue,
+    logged_by: name,
     location: document.getElementById('lj-location').value.trim() || null,
     priority: document.getElementById('lj-priority').value || null,
     category: document.getElementById('lj-category').value || null,
