@@ -486,6 +486,8 @@
     .comment-edit-input:focus { outline: none; }
     .comment-edit-actions { display: flex; gap: 6px; margin-top: 5px; }
     .comment-cancel-btn { padding: 5px 12px; background: var(--stone); color: var(--ink); border: none; border-radius: 5px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: var(--font); }
+    .notes-edit-btn { background: none; border: none; cursor: pointer; font-size: 11px; padding: 0 3px; opacity: 0.4; vertical-align: middle; line-height: 1; }
+    .notes-edit-btn:hover { opacity: 1; }
 
     /* ── Photo lightbox ── */
     #lightbox {
@@ -845,6 +847,7 @@ let feedbackData = {}; // job_id → { done, submitted_by, updated_at }
 let commentsData = {}; // job_id → [ { id, comment, photo, submitted_by, created_at }, ... ]
 let commentPhotoFiles = {}; // job_id → File (pending upload for new comment)
 let editingCommentId = null; // comment id currently being edited inline
+let notesEditingId = null;  // job id whose notes field is being edited inline
 let showDone = true;
 let showOnlyDone = false;
 
@@ -968,8 +971,17 @@ function buildCard(job) {
 
   const photoHtml = job.photo ? buildMediaHtml(job.photo) : '';
 
-  const notesHtml = job.notes
-    ? `<div class="job-notes">${esc(job.notes)}</div>` : '';
+  const notesHtml = notesEditingId === job.id
+    ? `<div class="job-notes">
+         <textarea class="comment-edit-input" id="notes-inline-${esc(job.id)}" style="margin-top:2px;">${esc(job.notes || '')}</textarea>
+         <div class="comment-edit-actions">
+           <button class="comment-post-btn" style="font-size:11px;padding:5px 14px;" onclick="saveNotesInline('${esc(job.id)}')">Save</button>
+           <button class="comment-cancel-btn" style="font-size:11px;padding:5px 10px;" onclick="cancelNotesInline('${esc(job.id)}')">Cancel</button>
+         </div>
+       </div>`
+    : job.notes
+      ? `<div class="job-notes">${esc(job.notes)} <button class="notes-edit-btn" title="Edit note" onclick="startNotesInline('${esc(job.id)}')">✏️</button></div>`
+      : '';
 
   const isHeroJob = (job.id || '').startsWith('Hero #');
   const dateHtml = job.date
@@ -1382,6 +1394,52 @@ async function postComment(jobId) {
   } catch (err) {
     if (statusEl) { statusEl.textContent = '✗ ' + (err.message || 'Could not post'); statusEl.style.color = 'var(--red)'; }
     if (btn) btn.disabled = false;
+  }
+}
+
+// ── Inline notes edit ────────────────────────────────────────
+function startNotesInline(jobId) {
+  notesEditingId = jobId;
+  rebuildCard(jobId);
+  setTimeout(() => document.getElementById(`notes-inline-${CSS.escape(jobId)}`)?.focus(), 50);
+}
+
+function cancelNotesInline(jobId) {
+  notesEditingId = null;
+  rebuildCard(jobId);
+}
+
+async function saveNotesInline(jobId) {
+  const textarea = document.getElementById(`notes-inline-${CSS.escape(jobId)}`);
+  if (!textarea) return;
+  const notes = textarea.value.trim();
+  textarea.disabled = true;
+  try {
+    const res = await fetch(`${API}/surf/jobs/${encodeURIComponent(jobId)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ notes })
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || 'Save failed');
+    const jobIdx = allJobs.findIndex(j => j.id === jobId);
+    if (jobIdx !== -1) allJobs[jobIdx].notes = notes || null;
+    notesEditingId = null;
+    rebuildCard(jobId);
+  } catch (err) {
+    textarea.disabled = false;
+    textarea.style.borderColor = 'var(--red)';
+    const actionsDiv = textarea.nextElementSibling;
+    if (actionsDiv) {
+      let errSpan = actionsDiv.querySelector('.notes-err');
+      if (!errSpan) {
+        errSpan = document.createElement('span');
+        errSpan.className = 'notes-err';
+        errSpan.style.cssText = 'font-size:11px;color:var(--red);margin-left:6px;';
+        actionsDiv.appendChild(errSpan);
+      }
+      errSpan.textContent = err.message || 'Could not save';
+    }
   }
 }
 
