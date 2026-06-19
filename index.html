@@ -149,6 +149,8 @@
       transition: all 0.12s;
     }
     .toggle-done.active { background: var(--maroon); color: var(--cream); border-color: var(--maroon); }
+    .clear-filters-btn { padding: 9px 14px; border: 1.5px solid #f5c4b3; border-radius: 7px; font-size: 12px; font-weight: 600; background: #faece7; color: #7B1A1A; cursor: pointer; white-space: nowrap; transition: all 0.12s; }
+    .clear-filters-btn:hover { background: #f5c4b3; }
 
     /* ── Name banner ── */
     .name-banner {
@@ -711,6 +713,7 @@
       <label class="multi-select-option"><input type="checkbox" value="Working Bee" onchange="updateRespFilter()"> 🐝 Working Bee</label>
     </div>
   </div>
+  <button class="clear-filters-btn" id="clear-filters-btn" onclick="clearAllFilters()" style="display:none">✕ Clear filters</button>
   <button class="toggle-done" id="toggle-done-btn" onclick="toggleShowDone()">Hide Completed</button>
   <button class="toggle-done" id="completed-jobs-btn" onclick="toggleCompletedView()">✅ Completed Jobs</button>
   <button class="toggle-done" onclick="openLogJobModal()" style="background:var(--maroon);color:#fff;border-color:var(--maroon);">➕ Log a Job</button>
@@ -1266,11 +1269,27 @@ document.addEventListener('click', e => {
 });
 
 // ── Filters ──────────────────────────────────────────────────
+function clearAllFilters() {
+  document.getElementById('search').value = '';
+  document.querySelectorAll('#priority-dropdown input, #category-dropdown input, #resp-dropdown input').forEach(el => el.checked = false);
+  document.getElementById('priority-label').textContent = '🎯 All priorities';
+  document.getElementById('category-label').textContent = '📋 All categories';
+  document.getElementById('resp-label').textContent = '👥 All responsible';
+  document.getElementById('priority-btn').classList.remove('active');
+  document.getElementById('category-btn').classList.remove('active');
+  document.getElementById('resp-btn').classList.remove('active');
+  closeAllDropdowns();
+  applyFilters();
+}
+
 function applyFilters() {
   const search = document.getElementById('search').value.toLowerCase();
   const prioritySelected = [...document.querySelectorAll('#priority-dropdown input:checked')].map(el => el.value);
   const categorySelected = [...document.querySelectorAll('#category-dropdown input:checked')].map(el => el.value);
   const respSelected = [...document.querySelectorAll('#resp-dropdown input:checked')].map(el => el.value);
+  const hasActiveFilters = search || prioritySelected.length || categorySelected.length || respSelected.length;
+  const clearBtn = document.getElementById('clear-filters-btn');
+  if (clearBtn) clearBtn.style.display = hasActiveFilters ? '' : 'none';
 
   document.querySelectorAll('.job-card').forEach(card => {
     const job = allJobs.find(j => j.id === card.dataset.id);
