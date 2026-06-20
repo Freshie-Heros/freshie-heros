@@ -198,6 +198,11 @@
     .name-row input:focus { outline: none; }
     .name-row input::placeholder { color: #bbb; }
     .name-hint { font-size: 11px; color: #aaa; }
+    @media (max-width: 480px) {
+      .name-row { flex-direction: column; align-items: flex-start; gap: 6px; }
+      .name-row input { width: 100%; min-width: unset; }
+      .name-hint { width: 100%; }
+    }
 
     /* ── Stats bar ── */
     .stats-bar {
@@ -757,7 +762,7 @@
 <div class="name-banner">
   <div class="name-row">
     <label for="volunteer-name">👤 Your name:</label>
-    <input type="text" id="volunteer-name" placeholder="Enter your name to log updates..." oninput="saveName()" enterkeyhint="done" onkeydown="if(event.key==='Enter')this.blur()">
+    <input type="text" id="volunteer-name" placeholder="Enter your name..." oninput="saveName()" enterkeyhint="done" onkeydown="if(event.key==='Enter')this.blur()">
     <span class="name-hint">Used when you mark jobs done or add feedback</span>
   </div>
 </div>
