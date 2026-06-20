@@ -521,21 +521,12 @@
 
 <script>
   // ── Password ──────────────────────────────────────────────────
-  const PW_HASH = '8a71c933c7c6c7b66ef5843c6a8b1ed4'; // freshwater26
-
-  function simpleHash(str) {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      hash = ((hash << 5) - hash) + str.charCodeAt(i);
-      hash |= 0;
-    }
-    return Math.abs(hash).toString(16).padStart(8, '0').repeat(4).slice(0, 32);
-  }
+  const PW = btoa('freshwater26');
 
   function unlock() {
     const val = document.getElementById('pw-input').value;
-    if (simpleHash(val) === PW_HASH) {
-      localStorage.setItem('caretaker_auth', simpleHash(val));
+    if (btoa(val) === PW) {
+      localStorage.setItem('caretaker_auth', PW);
       document.getElementById('lock-screen').style.display = 'none';
       document.getElementById('app').style.display = 'block';
       init();
@@ -546,7 +537,7 @@
   }
 
   // Auto-unlock if already authenticated
-  if (localStorage.getItem('caretaker_auth') === simpleHash('freshwater26')) {
+  if (localStorage.getItem('caretaker_auth') === PW) {
     document.getElementById('lock-screen').style.display = 'none';
     document.getElementById('app').style.display = 'block';
   }
