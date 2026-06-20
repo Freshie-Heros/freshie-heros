@@ -220,6 +220,10 @@
   <h1>🏄 Caretaker Handbook</h1>
   <p>Freshwater Surf Life Saving Club</p>
   <input type="password" id="pw-input" placeholder="Enter password" onkeydown="if(event.key==='Enter')unlock()">
+  <label style="display:flex;align-items:center;gap:8px;color:rgba(255,255,255,0.7);font-size:13px;cursor:pointer;margin-bottom:16px;max-width:300px;width:100%;">
+    <input type="checkbox" onchange="document.getElementById('pw-input').type=this.checked?'text':'password'" style="width:16px;height:16px;">
+    Show password
+  </label>
   <button onclick="unlock()">Enter</button>
   <div id="lock-error"></div>
 </div>
