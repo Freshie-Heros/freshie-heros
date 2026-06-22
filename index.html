@@ -1634,7 +1634,7 @@ function expandComments(jobId) {
 function startNotesInline(jobId) {
   notesEditingId = jobId;
   rebuildCard(jobId);
-  setTimeout(() => document.getElementById(`notes-inline-${CSS.escape(jobId)}`)?.focus(), 50);
+  setTimeout(() => document.getElementById(`notes-inline-${jobId}`)?.focus(), 50);
 }
 
 function cancelNotesInline(jobId) {
@@ -1643,7 +1643,7 @@ function cancelNotesInline(jobId) {
 }
 
 async function saveNotesInline(jobId) {
-  const textarea = document.getElementById(`notes-inline-${CSS.escape(jobId)}`);
+  const textarea = document.getElementById(`notes-inline-${jobId}`);
   if (!textarea) return;
   const notes = textarea.value.trim();
   textarea.disabled = true;
@@ -1849,8 +1849,10 @@ async function saveEdit(jobId) {
 
   try {
     let photoUrl;
+    let localPhotoUrl;
     const newFile = editPhotoFiles[jobId];
     if (newFile) {
+      localPhotoUrl = URL.createObjectURL(newFile);
       if (statusEl) statusEl.textContent = 'Uploading photo...';
       photoUrl = await uploadJobPhoto(newFile);
     }
@@ -1877,7 +1879,10 @@ async function saveEdit(jobId) {
 
     const jobIdx = allJobs.findIndex(j => j.id === jobId);
     if (jobIdx !== -1) {
-      allJobs[jobIdx] = { ...allJobs[jobIdx], ...data.job, id: jobId };
+      const updatedJob = { ...allJobs[jobIdx], ...data.job, id: jobId };
+      // Use local blob URL for immediate display — GitHub Pages takes ~60s to serve new files
+      if (localPhotoUrl) updatedJob.photo = localPhotoUrl;
+      allJobs[jobIdx] = updatedJob;
     }
 
     delete editPhotoFiles[jobId];
@@ -2203,7 +2208,9 @@ async function submitLogJob() {
   };
 
   try {
+    let localPhotoUrl;
     if (ljPhotoFile) {
+      localPhotoUrl = URL.createObjectURL(ljPhotoFile);
       btn.textContent = 'Uploading photo…';
       body.photo = await uploadJobPhoto(ljPhotoFile);
     }
@@ -2214,7 +2221,9 @@ async function submitLogJob() {
     if (!data.success) throw new Error(data.error || 'Could not save job.');
 
     // Add new job to local list, render card immediately and prepend to list
+    // Use local blob URL for immediate display — GitHub Pages takes ~60s to serve new files
     const newJob = { ...data.job, id: data.job.job_id };
+    if (localPhotoUrl) newJob.photo = localPhotoUrl;
     allJobs.unshift(newJob);
     closeLogJobModal();
 
