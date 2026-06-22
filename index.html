@@ -1550,6 +1550,12 @@ function stageCmntPhoto(jobId, input) {
     ? `<video class="comment-vid" src="${url}" controls preload="none" style="margin-top:4px"></video>`
     : `<img class="comment-img" src="${url}" alt="Preview" style="margin-top:4px">`;
   preview.innerHTML = `<div style="position:relative;display:inline-block;">${media}<button onclick="removeCmntPhoto('${esc(jobId)}')" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.6);color:#fff;border:none;border-radius:50%;width:24px;height:24px;font-size:15px;cursor:pointer;line-height:1;padding:0;" title="Remove">×</button></div>`;
+  // Re-expand the comment body in case it collapsed while the camera was open
+  const body = document.getElementById(`cmnt-body-${jobId}`);
+  if (body && body.style.display === 'none') {
+    document.getElementById(`cmnt-toggle-${jobId}`)?.remove();
+    body.style.display = '';
+  }
 }
 
 function removeCmntPhoto(jobId) {
