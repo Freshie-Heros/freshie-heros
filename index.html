@@ -885,6 +885,8 @@ let allJobs = [];
 let feedbackData = {};
 let commentsData = {};
 let commentPhotoFiles = {};
+let suppressCmntCollapse = false;
+let suppressCmntCollapseTimer = null;
 let editingCommentId = null;
 let notesEditingId = null;
 let editPhotoFiles = {};
@@ -1142,9 +1144,9 @@ function buildCard(job) {
         <div class="photo-picker-wrap" id="cmnt-picker-wrap-${esc(job.id)}">
           <button class="edit-upload-label" style="font-size:11px;padding:5px 10px;cursor:pointer;border:none;" onclick="togglePhotoPicker(event,'cmnt-picker-menu-${esc(job.id)}')">📷 Photo / Video</button>
           <div class="photo-picker-menu" id="cmnt-picker-menu-${esc(job.id)}">
-            <label class="photo-picker-opt" for="cmnt-photo-cam-${esc(job.id)}">📷 Take a photo</label>
-            <label class="photo-picker-opt" for="cmnt-video-cam-${esc(job.id)}">🎥 Take a video</label>
-            <label class="photo-picker-opt" for="cmnt-photo-${esc(job.id)}">🖼️ Choose from library</label>
+            <label class="photo-picker-opt" for="cmnt-photo-cam-${esc(job.id)}" onclick="armCmntCollapseSuppression()">📷 Take a photo</label>
+            <label class="photo-picker-opt" for="cmnt-video-cam-${esc(job.id)}" onclick="armCmntCollapseSuppression()">🎥 Take a video</label>
+            <label class="photo-picker-opt" for="cmnt-photo-${esc(job.id)}" onclick="armCmntCollapseSuppression()">🖼️ Choose from library</label>
           </div>
           <input type="file" id="cmnt-photo-cam-${esc(job.id)}" accept="image/*" capture="environment" style="display:none" onchange="stageCmntPhoto('${esc(job.id)}', this)">
           <input type="file" id="cmnt-video-cam-${esc(job.id)}" accept="video/*" capture="environment" style="display:none" onchange="stageCmntPhoto('${esc(job.id)}', this)">
@@ -1529,7 +1531,15 @@ function timeAgo(ts) {
   return new Date(ts).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' });
 }
 
+function armCmntCollapseSuppression() {
+  suppressCmntCollapse = true;
+  clearTimeout(suppressCmntCollapseTimer);
+  suppressCmntCollapseTimer = setTimeout(() => { suppressCmntCollapse = false; }, 60000);
+}
+
 function stageCmntPhoto(jobId, input) {
+  suppressCmntCollapse = false;
+  clearTimeout(suppressCmntCollapseTimer);
   const file = input.files[0];
   if (!file) return;
   commentPhotoFiles[jobId] = file;
@@ -1706,17 +1716,19 @@ window.addEventListener('scroll', () => {
   const el = document.getElementById('volunteer-name');
   if (el && document.activeElement === el) el.blur();
 
-  document.querySelectorAll('.cmnt-collapsed-body').forEach(body => {
-    if (body.style.display === 'none') return;
-    const jobId = body.id.replace('cmnt-body-', '');
-    const textarea = document.getElementById(`cmnt-input-${jobId}`);
-    const hasPhoto = commentPhotoFiles && commentPhotoFiles[jobId];
-    // Don't collapse if the user is actively focused in this comment box
-    if (textarea && document.activeElement === textarea) return;
-    if (textarea && !textarea.value.trim() && !hasPhoto) {
-      rebuildCard(jobId);
-    }
-  });
+  if (!suppressCmntCollapse) {
+    document.querySelectorAll('.cmnt-collapsed-body').forEach(body => {
+      if (body.style.display === 'none') return;
+      const jobId = body.id.replace('cmnt-body-', '');
+      const textarea = document.getElementById(`cmnt-input-${jobId}`);
+      const hasPhoto = commentPhotoFiles && commentPhotoFiles[jobId];
+      // Don't collapse if the user is actively focused in this comment box
+      if (textarea && document.activeElement === textarea) return;
+      if (textarea && !textarea.value.trim() && !hasPhoto) {
+        rebuildCard(jobId);
+      }
+    });
+  }
 }, { passive: true });
 
 // ── Session tracking ─────────────────────────────────────────
