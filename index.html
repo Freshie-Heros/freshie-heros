@@ -1543,7 +1543,7 @@ function stageCmntPhoto(jobId, input) {
   const file = input.files[0];
   if (!file) return;
   commentPhotoFiles[jobId] = file;
-  const preview = document.getElementById(`cmnt-preview-${CSS.escape(jobId)}`);
+  const preview = document.getElementById(`cmnt-preview-${jobId}`);
   if (!preview) return;
   const url = URL.createObjectURL(file);
   const media = isVideo(file.name)
@@ -1560,7 +1560,7 @@ function stageCmntPhoto(jobId, input) {
 
 function removeCmntPhoto(jobId) {
   delete commentPhotoFiles[jobId];
-  const preview = document.getElementById(`cmnt-preview-${CSS.escape(jobId)}`);
+  const preview = document.getElementById(`cmnt-preview-${jobId}`);
   if (preview) preview.innerHTML = '';
   [`cmnt-photo-cam-${jobId}`,`cmnt-video-cam-${jobId}`,`cmnt-photo-${jobId}`].forEach(id => {
     const el = document.getElementById(id); if (el) el.value = '';
@@ -1794,7 +1794,7 @@ function previewEditPhoto(jobId, input) {
   if (!file) return;
   editPhotoFiles[jobId] = file;
   delete removePhotoFor[jobId];
-  const preview = document.getElementById(`edit-photo-new-${CSS.escape(jobId)}`);
+  const preview = document.getElementById(`edit-photo-new-${jobId}`);
   if (!preview) return;
   const url = URL.createObjectURL(file);
   const media = isVideo(file.name)
@@ -1805,7 +1805,7 @@ function previewEditPhoto(jobId, input) {
 
 function removeEditPhoto(jobId) {
   delete editPhotoFiles[jobId];
-  const preview = document.getElementById(`edit-photo-new-${CSS.escape(jobId)}`);
+  const preview = document.getElementById(`edit-photo-new-${jobId}`);
   if (preview) preview.innerHTML = '';
   [`edit-photo-cam-${jobId}`,`edit-video-cam-${jobId}`,`edit-photo-file-${jobId}`].forEach(id => {
     const el = document.getElementById(id); if (el) el.value = '';
@@ -1814,7 +1814,7 @@ function removeEditPhoto(jobId) {
 
 function markRemovePhoto(jobId) {
   removePhotoFor[jobId] = true;
-  const wrap = document.getElementById(`current-photo-wrap-${CSS.escape(jobId)}`);
+  const wrap = document.getElementById(`current-photo-wrap-${jobId}`);
   if (wrap) wrap.remove();
 }
 
