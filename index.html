@@ -1598,7 +1598,7 @@ async function postComment(jobId) {
     if (pendingFiles.length > 0) {
       localPreviewUrls = pendingFiles.map(f => URL.createObjectURL(f));
       if (statusEl) statusEl.textContent = `Uploading ${pendingFiles.length > 1 ? pendingFiles.length + ' photos' : 'photo'}...`;
-      photoUrls = await Promise.all(pendingFiles.map(f => uploadJobPhoto(f)));
+      for (const f of pendingFiles) { photoUrls.push(await uploadJobPhoto(f)); }
       delete commentPhotoFiles[jobId];
     }
 
