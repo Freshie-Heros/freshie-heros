@@ -1444,8 +1444,8 @@ function applyFilters() {
     if (!showDone && isDone) { card.classList.add('hidden'); return; }
 
     const matchSearch = !search ||
-      job.issue.toLowerCase().includes(search) ||
-      job.location.toLowerCase().includes(search) ||
+      (job.issue || '').toLowerCase().includes(search) ||
+      (job.location || '').toLowerCase().includes(search) ||
       (job.notes || '').toLowerCase().includes(search);
     const matchPriority = prioritySelected.length === 0 || prioritySelected.includes(job.priority);
     const matchCategory = categorySelected.length === 0 || categorySelected.includes(job.category);
