@@ -1781,7 +1781,7 @@ setInterval(() => sessionPing(), 30000);
 
 // End session on page close
 window.addEventListener('beforeunload', () => {
-  navigator.sendBeacon(`${API}/surf/session/end`, JSON.stringify({ session_id: SESSION_ID }));
+  navigator.sendBeacon(`${API}/surf/session/end`, new Blob([JSON.stringify({ session_id: SESSION_ID })], { type: 'application/json' }));
 });
 
 // ── Edit panel ────────────────────────────────────────────────
